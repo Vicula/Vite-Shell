@@ -10,50 +10,70 @@
  * @namespace cherryBlossoms
  */
 
-import { createApp, defineComponent, h, VNode, computed } from 'vue'
+import {
+  createApp,
+  defineComponent,
+  resolveComponent,
+  h,
+  VNode,
+  VNodeArrayChildren,
+  computed,
+} from 'vue'
+import testcomp from './utilities/testcomp'
 
 const initWrap__name = '#init__wrapper'
 const app__name = 'CherryBlossoms'
 
-const createAttributes = (o: Element) => {
-  const atr = o.attributes
-  const atrOb: { [k: string]: string } = {}
-  for (let i = 0; atr.length > i; i++) {
-    atrOb[atr[i].name] = atr[i].value
-  }
-  return atrOb
+interface attr {
+  name: string
+  value: string
 }
 
-const createChildren = (b: ChildNode | Element): (VNode | string)[] => {
-  const ar: (VNode | string)[] = []
-  ;(b.childNodes as NodeListOf<Element>).forEach((cr: Element) => {
+interface DomEl {
+  tag: string
+  props: attr[]
+  children: (DomEl | string)[]
+}
+
+const createAttributes = (o: HTMLElement) => {
+  const atr = o.attributes
+  //   const atrOb: { [k: string]: string } = {}
+  const atrAr: attr[] = []
+  for (let i = 0; atr.length > i; i++) {
+    atrAr.push({
+      name: atr[i].name,
+      value: atr[i].value,
+    } as attr)
+  }
+  return atrAr
+}
+
+// The h() function is a utility to create VNodes.
+// https://v3.vuejs.org/guide/render-function.html#h-arguments
+
+const createChildren = (b: ChildNode | HTMLElement) => {
+  const ar: (DomEl | string)[] = []
+  ;(b.childNodes as NodeListOf<HTMLElement>).forEach((cr: HTMLElement) => {
     cr.nodeName !== '#text'
-      ? ar.push(
-          // The h() function is a utility to create VNodes.
-          // https://v3.vuejs.org/guide/render-function.html#h-arguments
-          h(
-            computed(() => cr.nodeName).value,
-            computed(() => createAttributes(cr)).value,
-            {
-              default: () => (cr.childNodes.length ? createChildren(cr) : ['']),
-            }
-          )
-        )
+      ? ar.push({
+          tag: computed(() => cr.nodeName).value,
+          props: computed(() => createAttributes(cr)).value,
+        } as DomEl)
       : ar.push('' + cr.nodeValue)
   })
   return ar
 }
 
-const createPage = (b: Element): VNode => {
-  return h(
-    'div', // TAG
-    { id: initWrap__name }, // PROPS
-    {
-      // CHILDREN
-      default: () => createChildren(b),
-    }
-  )
-}
+// const createPage = (b: HTMLElement): VNode => {
+//   return h('div', { id: initWrap__name }, { default: () => createChildren(b) })
+// }
+// h(
+//
+//
+//     {
+//       default: () => (cr.childNodes.length ? createChildren(cr) : ['']),
+//     }
+//   )
 
 const body = document.body
 const initContent = createPage(body)
@@ -67,7 +87,7 @@ const app = createApp(
       releaseChildren(this.$el)
     },
     render() {
-      return initContent
+      return hydrateComponents(initContent)
     },
   })
 )
@@ -80,4 +100,19 @@ const releaseChildren = (obj: Node) => {
   p && p.removeChild(obj)
 }
 
+const hydrateComponents = (v: VNode): VNode => {
+  console.log(v)
+  if (v.children) {
+    const c = v.children as VNodeArrayChildren
+    c.map((b) => {
+      const p = b as VNode
+      if (typeof p === 'object') {
+        resolveComponent(p.type as string)
+      }
+    })
+  }
+  return v
+}
+
+app.use(testcomp)
 app.mount('body')
