@@ -1,1 +1,5 @@
-# Cherry Blossoms Scene
+# Vite Shell
+
+yarn install
+
+yarn dev
