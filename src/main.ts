@@ -16,7 +16,6 @@ import {
   resolveComponent,
   h,
   VNode,
-  VNodeArrayChildren,
   computed,
 } from 'vue'
 import testcomp from './utilities/testcomp'
@@ -35,9 +34,67 @@ interface DomEl {
   children: (DomEl | string)[]
 }
 
-const createAttributes = (o: HTMLElement) => {
+const body = document.body
+const initContent = createContent(body)
+
+const app = createApp(
+  // To let TypeScript properly infer types inside Vue component options,
+  // you need to define components with defineComponent
+  defineComponent({
+    name: app__name,
+    mounted() {
+      releaseContent(this.$el)
+    },
+    render() {
+      return h(
+        'div',
+        { id: initWrap__name },
+        { default: () => hydrateContent(initContent) }
+      )
+    },
+  })
+)
+
+function releaseContent(obj: Node) {
+  const p = obj.parentNode
+  while (obj.firstChild) {
+    p && p.insertBefore(obj.firstChild, obj)
+  }
+  p && p.removeChild(obj)
+}
+
+function hydrateAttributes(a: attr[]) {
+  const ao: { [k: string]: string } = {}
+  a.forEach((c) => {
+    ao[c.name] = c.value
+  })
+  return ao
+}
+
+function hydrateContent(v: (DomEl | string)[]) {
+  const ar: (VNode | string)[] = []
+  v.forEach((b) => {
+    typeof b !== 'string' && typeof resolveComponent(b.tag) !== 'string'
+      ? ar.push(h(resolveComponent(b.tag)))
+      : typeof b !== 'string'
+      ? ar.push(
+          h(
+            computed(() => b.tag).value,
+            computed(() => hydrateAttributes(b.props)).value,
+            {
+              default: () =>
+                b.children.length ? hydrateContent(b.children) : [''],
+            }
+          )
+        )
+      : ar.push(b)
+  })
+  return ar
+}
+
+function createAttributes(o: HTMLElement) {
   const atr = o.attributes
-  //   const atrOb: { [k: string]: string } = {}
+  //
   const atrAr: attr[] = []
   for (let i = 0; atr.length > i; i++) {
     atrAr.push({
@@ -48,70 +105,18 @@ const createAttributes = (o: HTMLElement) => {
   return atrAr
 }
 
-// The h() function is a utility to create VNodes.
-// https://v3.vuejs.org/guide/render-function.html#h-arguments
-
-const createChildren = (b: ChildNode | HTMLElement) => {
+function createContent(b: ChildNode | HTMLElement) {
   const ar: (DomEl | string)[] = []
   ;(b.childNodes as NodeListOf<HTMLElement>).forEach((cr: HTMLElement) => {
     cr.nodeName !== '#text'
       ? ar.push({
           tag: computed(() => cr.nodeName).value,
           props: computed(() => createAttributes(cr)).value,
+          children: cr.childNodes.length ? createContent(cr) : [''],
         } as DomEl)
       : ar.push('' + cr.nodeValue)
   })
   return ar
-}
-
-// const createPage = (b: HTMLElement): VNode => {
-//   return h('div', { id: initWrap__name }, { default: () => createChildren(b) })
-// }
-// h(
-//
-//
-//     {
-//       default: () => (cr.childNodes.length ? createChildren(cr) : ['']),
-//     }
-//   )
-
-const body = document.body
-const initContent = createPage(body)
-
-const app = createApp(
-  // To let TypeScript properly infer types inside Vue component options,
-  // you need to define components with defineComponent
-  defineComponent({
-    name: app__name,
-    mounted() {
-      releaseChildren(this.$el)
-    },
-    render() {
-      return hydrateComponents(initContent)
-    },
-  })
-)
-
-const releaseChildren = (obj: Node) => {
-  const p = obj.parentNode
-  while (obj.firstChild) {
-    p && p.insertBefore(obj.firstChild, obj)
-  }
-  p && p.removeChild(obj)
-}
-
-const hydrateComponents = (v: VNode): VNode => {
-  console.log(v)
-  if (v.children) {
-    const c = v.children as VNodeArrayChildren
-    c.map((b) => {
-      const p = b as VNode
-      if (typeof p === 'object') {
-        resolveComponent(p.type as string)
-      }
-    })
-  }
-  return v
 }
 
 app.use(testcomp)
