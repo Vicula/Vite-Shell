@@ -1,13 +1,13 @@
 /**
- * Cherry Blossoms Effect Init Script
+ * Vite Shell Init Script
  * ------------------------------------------------------------------------------
- * A file that inits a vue shell and adds animation compoenents for
+ * A file that inits a vue shell and adds components for
  * site building
  *
  * current features:
  *  - NONE
  *
- * @namespace cherryBlossoms
+ * @namespace ViteShell
  */
 
 import {
