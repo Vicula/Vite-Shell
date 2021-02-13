@@ -23,9 +23,9 @@ export interface exportOptions {
   buildStart?: () => void
   closeWatcher?: () => void
   watchChange?: () => void
-  moduleParsed?: () => void
 
   // Called on build
+  moduleParsed?: () => void
   renderError?: () => void
   renderStart?: () => void
   writeBundle?: () => void
