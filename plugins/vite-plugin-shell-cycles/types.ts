@@ -23,6 +23,7 @@ export interface exportOptions {
   buildStart?: () => void
   closeWatcher?: () => void
   watchChange?: () => void
+  transformIndexHtml?: () => void //every time dev reloads
 
   // Called on build
   moduleParsed?: () => void
