@@ -24,12 +24,12 @@
     "lint:markup": "vti diagnostics",
     "lint": "yarn lint:script && yarn lint:style && yarn lint:markup",
     "preinstall": "node scripts/checkYarn.js",
-    "postinstall": "husky install"
+    "postinstall": "husky install",
+    "commitmsg": "node scripts/verifyCommits.js"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run lint-staged",
-      "commitmsg": "node scripts/verifyCommits.js"
+      "pre-commit": "npm run lint-staged"
     }
   },
   "lint-staged": {
