@@ -14,6 +14,9 @@ export default defineConfig({
       buildStart: {
         commands: ['echo run my script'],
       },
+      buildEnd: {
+        commands: ['echo end my script'],
+      },
     }),
   ],
 })

@@ -13,6 +13,7 @@ export interface importOptions {
   renderError?: Script
   renderStart?: Script
   writeBundle?: Script
+  transformIndexHtml?: Script
 }
 
 export interface exportOptions {

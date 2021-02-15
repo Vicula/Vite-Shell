@@ -2,15 +2,30 @@ import { spawn, spawnSync } from 'child_process'
 import { exportOptions, importOptions, Script } from './types'
 
 export default function execute(input: importOptions): exportOptions {
-  console.log(new createShellPlugin(input))
-  return new createShellPlugin(input)
+  return new ShellPlugin(input)
 }
 
-class createShellPlugin {
-  name: 'shell-cycles'
+class ShellPlugin {
+  readonly name: string
+  private expected: string[]
   constructor(i: importOptions) {
+    const o = typeof i === 'object'
+    const e = i !== null
+    this.expected = [
+      'buildEnd',
+      'buildStart',
+      'closeWatcher',
+      'watchChange',
+      'moduleParsed',
+      'generateBundle',
+      'renderError',
+      'renderStart',
+      'writeBundle',
+      'transformIndexHtml',
+    ]
+    this.name = 'shell-cycles'
     for (const k in i) {
-      this.validateKey(i, k) && this.addProperty(i[k], k)
+      this.validateKey(i[k], k) && this.addProperty(i[k], k)
     }
   }
   private addProperty(i: Script, k: string): void {
@@ -18,14 +33,39 @@ class createShellPlugin {
       this.runScripts(i)
     }
   }
-  private validateKey(i: importOptions, k: string): i is importOptions {
+
+  private validateKey(i: Script, k: string): i is Script {
     let z = false
-    i[k].commands.forEach((b: string) => {
-      if (typeof b !== 'string') {
-        z = true
+    let n = false
+    try {
+      this.expected.forEach((b: string) => {
+        b === k && (n = true)
+      })
+      if (n) {
+        try {
+          i.commands.forEach((b: string) => {
+            if (typeof b !== 'string') {
+              z = true
+            }
+          })
+        } catch (e) {
+          console.error(
+            `Shell-Cycles:Error ${k}'s commands property didnt exist or wasnt an array of strings so was skipped`
+          )
+          console.error('---------------')
+          console.error(e)
+          return false
+        }
+        return i && i.commands && !z
+      } else {
+        throw `${k} wasnt found in the importOptions`
       }
-    })
-    return i && i[k] && z
+    } catch (p) {
+      console.error(`Shell-Cycles:Error ${k}'s wasnt an expexted import option`)
+      console.error('---------------')
+      console.error(p)
+    }
+    return true
   }
   private runScripts(cb: Script) {
     const z: string[] = cb.commands.slice(0)
