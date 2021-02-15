@@ -23,7 +23,8 @@
     "lint:style": "stylelint src/**/*.{css,scss,vue}",
     "lint:markup": "vti diagnostics",
     "lint": "yarn lint:script && yarn lint:style && yarn lint:markup",
-    "preinstall": "node scripts/checkYarn.js"
+    "preinstall": "node scripts/checkYarn.js",
+    "postinstall": "husky install"
   },
   "husky": {
     "hooks": {
