@@ -19,17 +19,14 @@
     "dev": "vite",
     "build": "vuedx-typecheck . && vite build",
     "serve": "vite preview",
-    "postinstall": "husky install",
     "lint:script": "eslint --ext .ts,vue --ignore-path .gitignore .",
     "lint:style": "stylelint src/**/*.{css,scss,vue}",
     "lint:markup": "vti diagnostics",
     "lint": "yarn lint:script && yarn lint:style && yarn lint:markup"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "commit-msg": "node scripts/verifyCommit.js"
-    }
+  "gitHooks": {
+    "pre-commit": "lint-staged",
+    "commit-msg": "node scripts/verifyCommit.js"
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --fix",
