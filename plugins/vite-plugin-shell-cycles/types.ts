@@ -14,6 +14,8 @@ export interface importOptions {
   renderStart?: Script
   writeBundle?: Script
   transformIndexHtml?: Script
+  configureServer?: Script
+  handleHotUpdate?: Script
 }
 
 export interface exportOptions {
@@ -24,7 +26,9 @@ export interface exportOptions {
   buildStart?: () => void
   closeWatcher?: () => void
   watchChange?: () => void
-  transformIndexHtml?: () => void //every time dev reloads
+  transformIndexHtml?: () => void //every time dev server changes/reloads/navigates
+  configureServer?: () => void
+  handleHotUpdate?: () => void
 
   // Called on build
   moduleParsed?: () => void

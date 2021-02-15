@@ -7,25 +7,34 @@ export default function execute(input: importOptions): exportOptions {
 
 class ShellPlugin {
   readonly name: string
-  private expected: string[]
+  readonly expected: string[]
   constructor(i: importOptions) {
-    const o = typeof i === 'object'
-    const e = i !== null
-    this.expected = [
-      'buildEnd',
-      'buildStart',
-      'closeWatcher',
-      'watchChange',
-      'moduleParsed',
-      'generateBundle',
-      'renderError',
-      'renderStart',
-      'writeBundle',
-      'transformIndexHtml',
-    ]
-    this.name = 'shell-cycles'
-    for (const k in i) {
-      this.validateKey(i[k], k) && this.addProperty(i[k], k)
+    try {
+      this.expected = [
+        'buildEnd',
+        'buildStart',
+        'closeWatcher',
+        'watchChange',
+        'moduleParsed',
+        'generateBundle',
+        'renderError',
+        'renderStart',
+        'writeBundle',
+        'transformIndexHtml',
+        'configureServer',
+        'handleHotUpdate',
+      ]
+      this.name = 'shell-cycles'
+      if (typeof i !== 'object' && i === null)
+        throw 'expected import to be an object'
+
+      for (const k in i) {
+        this.validateKey(i[k], k) && this.addProperty(i[k], k)
+      }
+    } catch (e) {
+      console.error(`Shell-Cycles:Error expected an object go an ${typeof i}`)
+      console.error('---------------')
+      console.error(e)
     }
   }
   private addProperty(i: Script, k: string): void {
