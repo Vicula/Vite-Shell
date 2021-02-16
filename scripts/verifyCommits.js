@@ -1,4 +1,4 @@
-// Invoked on the commit-msg git hook by yorkie.
+// Invoked on the commit-msg git hook by husky.
 
 const chalk = require('chalk')
 const msgPath = process.env.HUSKY_GIT_PARAMS
@@ -16,6 +16,8 @@ if (!commitRE.test(msg)) {
         `  Proper commit message format is required for automated changelog generation. Examples:\n\n`
       ) +
       `    ${chalk.green(`feat(compiler): add 'comments' option`)}\n` +
+      `      ${chalk.green(`style(plp): added comments section`)}\n` +
+      `      ${chalk.green(`wip(pdp): started on comments section`)}\n` +
       `    ${chalk.green(
         `fix(v-model): handle events on blur (close #28)`
       )}\n\n` +
