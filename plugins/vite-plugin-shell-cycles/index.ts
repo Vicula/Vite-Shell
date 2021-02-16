@@ -1,5 +1,6 @@
 import { spawn, spawnSync } from 'child_process'
 import { exportOptions, importOptions, Script } from './types'
+import chalk from 'chalk'
 
 export default function execute(input: importOptions): exportOptions {
   return new ShellPlugin(input)
@@ -32,7 +33,11 @@ class ShellPlugin {
         this.validateKey(i[k], k) && this.addProperty(i[k], k)
       }
     } catch (e) {
-      console.error(`Shell-Cycles:Error expected an object go an ${typeof i}`)
+      console.error(
+        `${chalk.white.bgRed.bold('Shell-Cycles:Error')} ${chalk.red(
+          'expected an object, but got'
+        )} ${chalk.underline(typeof i)}`
+      )
       console.error('---------------')
       console.error(e)
     }
@@ -59,7 +64,11 @@ class ShellPlugin {
           })
         } catch (e) {
           console.error(
-            `Shell-Cycles:Error ${k}'s commands property didnt exist or wasnt an array of strings so was skipped`
+            `${chalk.white.bgRed.bold('Shell-Cycles:Error')} ${chalk.underline(
+              k
+            )}'s ${chalk.red(
+              'commands property didnt exist or wasnt an array of strings so was skipped'
+            )}`
           )
           console.error('---------------')
           console.error(e)
@@ -70,7 +79,11 @@ class ShellPlugin {
         throw `${k} wasnt found in the importOptions`
       }
     } catch (p) {
-      console.error(`Shell-Cycles:Error ${k}'s wasnt an expexted import option`)
+      console.error(
+        `${chalk.white.bgRed.bold('Shell-Cycles:Error')} ${chalk.underline(
+          k
+        )}'s ${chalk.red('wasnt an expexted import option')}`
+      )
       console.error('---------------')
       console.error(p)
     }

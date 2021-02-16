@@ -4,12 +4,14 @@ import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 
 import shell from './plugins/vite-plugin-shell-cycles'
+import shopify from './plugins/vite-plugin-shopify-theme'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
     vueJsx(),
+    shopify({}),
     shell({
       buildStart: {
         commands: ['echo run my script'],
