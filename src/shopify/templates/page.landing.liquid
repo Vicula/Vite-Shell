@@ -1,0 +1,46 @@
+{% comment %} 
+  Template for Landing Page
+{% endcomment %}
+
+{% assign metafields = page.metafields %}
+
+{% comment %} *** Namespaces *** {% endcomment %}
+{% assign press_logos = 'press_logos' %}
+{% assign hero_section = 'hero_section' %}
+
+{% comment %} *** Controller *** {% endcomment %}
+{% if metafields[press_logos] != blank %}
+
+  <div class="container">
+    <div class="content">
+      <section class="flex-holder">
+      {% for logos in metafields[press_logos] %}
+        {% for logo in logos %}
+          {% comment %} Fixing object bug in iteration of logos {% endcomment %}
+          {% capture thecycle %}{% cycle 'odd', 'even' %}{% endcapture %}
+          {% if thecycle == 'even' %}
+            <div class="flex-item">
+              <img src="{{ logo.url }}" alt="{{ logo.alt }}" width="{{ logo.dimensions.width }}" height="{{ logo.dimensions.height }}">
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+      </section>
+    </div>
+  </div>
+
+{% endif %}
+
+{% if metafields[hero_section] != blank %}
+
+  <section class="hero-cover" style="background-image: url('{{ metafields[hero_section].desktop_image.url }}')">
+    <div class="hero-content">
+      <h1>{{ metafields[hero_section].heading }}</h1>
+      <h2>{{ metafields[hero_section].description[0].text }}</h2>
+      <a class="btn btn-primary" href="{{ metafields[hero_section].button_url }}">{{ metafields[hero_section].button_text }}</a>
+    </div>
+  </section>
+
+{% endif %}
+
+  

@@ -1,4 +1,5 @@
 import { exec } from 'child_process'
+import path from 'path'
 import fs from 'fs'
 
 export default function execute(i) {
@@ -9,21 +10,54 @@ export default function execute(i) {
 
 class ShopifyPlugin {
   name: string
+  env: { [k: string]: string }
   buildStart: () => void
+
   constructor(i) {
     this.name = 'shopify-plugin'
+    this.setEnv().then(() => {
+      this.createBuildStartHook()
+    })
   }
 
   private configureServerMiddleware() {
     // need to inject middleware for making requests to shopify
   }
 
+  private async setEnv() {
+    this.env = await this.getEnv()
+  }
+
+  private async getEnv() {
+    const envFilePath = path.resolve(__dirname, './.env')
+    try {
+      const res = {}
+      const data = fs.readFileSync(envFilePath, 'utf8')
+
+      data.split('\n').forEach((kv) => {
+        const [key, value] = kv.replace(/\s*/g, '').split('=')
+        if (key && value) {
+          res[key] = value
+        }
+      })
+
+      return res
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   private createConfig() {
-    process.env.SHOPIFY_PASSWORD
-    process.env.SHOPIFY_STORE
-    fs.writeFile('config.yml', `config yaml `, (err) => {
-      if (err) console.log(err)
-    })
+    exec(
+      `theme get --list -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE}`,
+      (s, e) => {
+        console.log(s, e)
+      }
+    )
+
+    // fs.writeFile('config.yml', `config yaml `, (err) => {
+    //   if (err) console.log(err)
+    // })
   }
   private createJSONFiles() {
     fs.writeFile('layout.json.liquid', `{{products | json}} `, (err) => {
@@ -38,7 +72,7 @@ class ShopifyPlugin {
   private checkBranch() {
     this.runScript('git branch --show-current')
     this.runScript('theme get --list')
-    if (this.checkFolders()) this.initTheme()
+    // if (this.checkFolders()) this.initTheme()
   }
   private checkFolders() {
     if (!fs.existsSync('shopify')) {
@@ -46,9 +80,10 @@ class ShopifyPlugin {
     }
   }
   private createBuildStartHook() {
-    this.createConfig()
-    this.createJSONFiles()
-    this.checkBranch()
+    this.buildStart = () => {
+      this.createConfig()
+    }
+    // this.createJSONFiles()
   }
   private runScript(c: string) {
     exec(c)
