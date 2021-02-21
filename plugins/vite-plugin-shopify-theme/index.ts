@@ -1,5 +1,5 @@
 import { exec } from 'child_process'
-import path from 'path'
+import path, { resolve } from 'path'
 import fs from 'fs'
 
 export default function execute(i) {
@@ -11,7 +11,7 @@ export default function execute(i) {
 class ShopifyPlugin {
   name: string
   env: { [k: string]: string }
-  buildStart: () => void
+  buildStart: () => Promise<void>
 
   constructor(i) {
     this.name = 'shopify-plugin'
@@ -47,11 +47,12 @@ class ShopifyPlugin {
     }
   }
 
-  private createConfig() {
+  private createConfig(r: () => void) {
     exec(
       `theme get --list -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE}`,
       (s, e) => {
         console.log(s, e)
+        r()
       }
     )
 
@@ -80,10 +81,10 @@ class ShopifyPlugin {
     }
   }
   private createBuildStartHook() {
-    this.buildStart = () => {
-      this.createConfig()
-    }
-    // this.createJSONFiles()
+    this.buildStart = () =>
+      new Promise((resolve, reject) => {
+        this.createConfig(resolve)
+      })
   }
   private runScript(c: string) {
     exec(c)
