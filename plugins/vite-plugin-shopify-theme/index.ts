@@ -38,6 +38,13 @@ class ShopifyPlugin {
     })
   }
 
+  private createBuildStartHook() {
+    this.buildStart = () =>
+      new Promise((resolve, reject) => {
+        this.createConfig(resolve, reject)
+      })
+  }
+
   private configureServerMiddleware() {
     // need to inject middleware for making requests to shopify
   }
@@ -49,9 +56,9 @@ class ShopifyPlugin {
   }
   private printError(t: string, m: string): void {
     console.error(
-      `${chalk.whiteBright.bgRed.bold(
+      ` ${chalk.whiteBright.bgRed.bold(
         `Shopify-Plugin:${t}`
-      )} ${chalk.underline.red(m)}`
+      )} 🛑 ${chalk.underline.red(m)} 🛑`
     )
     console.error('____________________')
     console.log('')
@@ -184,12 +191,5 @@ class ShopifyPlugin {
     fs.writeFile('layout.json.liquid', `{{products | json}} `, (err) => {
       if (err) console.log(err)
     })
-  }
-
-  private createBuildStartHook() {
-    this.buildStart = () =>
-      new Promise((resolve, reject) => {
-        this.createConfig(resolve, reject)
-      })
   }
 }
