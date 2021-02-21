@@ -1,6 +1,8 @@
 import { exec } from 'child_process'
 import path, { resolve } from 'path'
 import fs from 'fs'
+import chalk from 'chalk'
+import { shopifyTheme } from './types'
 
 export default function execute(i) {
   return new ShopifyPlugin(i)
@@ -12,12 +14,16 @@ class ShopifyPlugin {
   name: string
   env: { [k: string]: string }
   buildStart: () => Promise<void>
+  closeBundle: () => void
 
   constructor(i) {
     this.name = 'shopify-plugin'
     this.setEnv().then(() => {
       this.createBuildStartHook()
     })
+    this.closeBundle = () => {
+      console.error('is this better?')
+    }
   }
 
   private configureServerMiddleware() {
@@ -29,15 +35,15 @@ class ShopifyPlugin {
   }
 
   private async getEnv() {
-    const envFilePath = path.resolve(__dirname, './.env')
+    const f = path.resolve(__dirname, './.env')
     try {
       const res = {}
-      const data = fs.readFileSync(envFilePath, 'utf8')
+      const data = fs.readFileSync(f, 'utf8')
 
       data.split('\n').forEach((kv) => {
-        const [key, value] = kv.replace(/\s*/g, '').split('=')
-        if (key && value) {
-          res[key] = value
+        const [k, v] = kv.replace(/\s*/g, '').split('=')
+        if (k && v) {
+          res[k] = v
         }
       })
 
@@ -47,14 +53,52 @@ class ShopifyPlugin {
     }
   }
 
-  private createConfig(r: () => void) {
-    exec(
-      `theme get --list -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE}`,
-      (s, e) => {
-        console.log(s, e)
-        r()
-      }
-    )
+  private getThemes = () =>
+    new Promise((r) => {
+      exec(
+        `theme get --list -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE}`,
+        (s, e) => {
+          const o: shopifyTheme[] = []
+          e.split(/\r?\n/).forEach((i) => {
+            const m = i.match(/\[(.*?)\]/)
+            const p =
+              m && i.includes('live')
+                ? m && i.split(`[${m[1]}]`)[1].split('[live] ')[1]
+                : m && i.split(`[${m[1]}] `)[1]
+            m &&
+              p &&
+              o.push({
+                id: m[1],
+                theme: p,
+                live: i.includes('live'),
+              })
+          })
+          r(o)
+        }
+      )
+    })
+
+  private getBranch = () =>
+    new Promise((r) => {
+      exec('git branch --show-current', (s, e) => {
+        r(e)
+      })
+    })
+
+  private async createConfig(r: () => void, x: (k: string) => void) {
+    const t = await this.getThemes()
+    const b = await this.getBranch()
+
+    console.log(t, b)
+    // console.error(
+    //   `${chalk.white.bgRed.bold('Shell-Cycles:Error')} ${chalk.red(
+    //     'expected an object, but got'
+    //   )} ${chalk.underline(typeof i)}`
+    // )
+    // x('Cannot build on Branch (master|main)')
+    r()
+    // if main or master theme get --live
+    // specify -d / --dir for directory of shopify templates
 
     // fs.writeFile('config.yml', `config yaml `, (err) => {
     //   if (err) console.log(err)
@@ -83,7 +127,7 @@ class ShopifyPlugin {
   private createBuildStartHook() {
     this.buildStart = () =>
       new Promise((resolve, reject) => {
-        this.createConfig(resolve)
+        this.createConfig(resolve, reject)
       })
   }
   private runScript(c: string) {
