@@ -103,7 +103,7 @@ class ShopifyPlugin {
     console.log('____________________')
     console.log('')
     fs.existsSync('.build') && rimraf.sync('.build')
-    execSync(`theme deploy -d=src/shopify`)
+    execSync(`theme deploy -n -d=src/shopify`)
     console.log(
       `${chalk.white.bold('Shopify-Plugin:Create')} ${chalk.white(
         '✨✨ Theme Deployed and cleaned ✨✨'
@@ -113,9 +113,23 @@ class ShopifyPlugin {
     console.log('')
   }
   private themeFetch(i: string) {
-    execSync(
-      `theme get -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE} -t=${i} -d=src/shopify`
+    console.log(
+      `${chalk.white.bold('Shopify-Plugin:Create')} ${chalk.white(
+        'Found theme on shopify; fetching theme files ...'
+      )}`
     )
+    console.log('____________________')
+    console.log('')
+    execSync(
+      `theme get -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE} -t=${i} -d=src/shopify --ignored-file=assets/* --ignored-file=locales/* --ignored-file=config/*`
+    )
+    console.log(
+      `${chalk.white.bold('Shopify-Plugin:Create')} ${chalk.white(
+        '✨✨ Theme Fetched ✨✨'
+      )}`
+    )
+    console.log('____________________')
+    console.log('')
   }
 
   private async createConfig(r: () => void, x: (k: Error) => void) {
