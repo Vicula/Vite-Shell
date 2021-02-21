@@ -54,7 +54,7 @@ class ShopifyPlugin {
   }
 
   private getThemes = () =>
-    new Promise((r) => {
+    new Promise<shopifyTheme[]>((r) => {
       exec(
         `theme get --list -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE}`,
         (s, e) => {
@@ -79,24 +79,46 @@ class ShopifyPlugin {
     })
 
   private getBranch = () =>
-    new Promise((r) => {
+    new Promise<string>((r) => {
       exec('git branch --show-current', (s, e) => {
-        r(e)
+        r(e.replace(/\s/g, ''))
       })
     })
 
   private async createConfig(r: () => void, x: (k: string) => void) {
-    const t = await this.getThemes()
-    const b = await this.getBranch()
+    try {
+      const t = await this.getThemes()
+      const b = await this.getBranch()
+      if (b !== 'main' && b !== 'master') {
+        try {
+          const v = t.find((i) => i.theme.includes(b))
+          if (!v || !v.live) {
+            console.log(t, b)
+          } else {
+            throw 'Shopify-Plugin:Error Cannot edit a branch direcetly connected to a live theme'
+          }
+        } catch (ex) {
+          console.error(
+            `${chalk.white.bgRed.bold(
+              'Shopify-Plugin:Error'
+            )} ${chalk.underline.red(
+              'Cannot edit a branch direcetly connected to a live theme'
+            )}`
+          )
+          x(ex)
+        }
+      } else {
+        throw 'Shopify-Plugin:Error Cannot build on git branch (master|main)'
+      }
+    } catch (er) {
+      console.error(
+        `${chalk.white.bgRed.bold(
+          'Shopify-Plugin:Error'
+        )} ${chalk.underline.red('Cannot build on git branch (master|main)')}`
+      )
+      x(er)
+    }
 
-    console.log(t, b)
-    // console.error(
-    //   `${chalk.white.bgRed.bold('Shell-Cycles:Error')} ${chalk.red(
-    //     'expected an object, but got'
-    //   )} ${chalk.underline(typeof i)}`
-    // )
-    // x('Cannot build on Branch (master|main)')
-    r()
     // if main or master theme get --live
     // specify -d / --dir for directory of shopify templates
 
