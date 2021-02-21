@@ -88,7 +88,7 @@ class ShopifyPlugin {
         'Couldnt find a theme related to this git branch; so creating one with name'
       )} ${chalk.white.underline.bold(n)} ...`
     )
-    console.log('_________________')
+    console.log('____________________')
     console.log('')
     execSync(
       `theme new -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE} -n=${n} -d=.build`
@@ -100,18 +100,16 @@ class ShopifyPlugin {
         'Cleaning up and deploying theme ...'
       )}`
     )
-    console.log('_________________')
+    console.log('____________________')
     console.log('')
     fs.existsSync('.build') && rimraf.sync('.build')
-    execSync(
-      `theme deploy -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE} -t=${n} -d=src/shopify`
-    )
+    execSync(`theme deploy -d=src/shopify`)
     console.log(
       `${chalk.white.bold('Shopify-Plugin:Create')} ${chalk.white(
         '✨✨ Theme Deployed and cleaned ✨✨'
       )}`
     )
-    console.log('_________________')
+    console.log('____________________')
     console.log('')
   }
   private themeFetch(i: string) {
@@ -142,6 +140,8 @@ class ShopifyPlugin {
               'Cannot edit a branch direcetly connected to a live theme'
             )}`
           )
+          console.log('____________________')
+          console.log('')
           x(new Error(ex))
         }
       } else {
@@ -153,6 +153,8 @@ class ShopifyPlugin {
           'Shopify-Plugin:Error'
         )} ${chalk.underline.red('Cannot build on git branch (master|main)')}`
       )
+      console.log('____________________')
+      console.log('')
       x(new Error(er))
     }
 
