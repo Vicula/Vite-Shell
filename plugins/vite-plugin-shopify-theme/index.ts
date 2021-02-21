@@ -1,5 +1,5 @@
 import { exec } from 'child_process'
-import path, { resolve } from 'path'
+import { resolve } from 'path'
 import fs from 'fs'
 import chalk from 'chalk'
 import { shopifyTheme } from './types'
@@ -14,16 +14,12 @@ class ShopifyPlugin {
   name: string
   env: { [k: string]: string }
   buildStart: () => Promise<void>
-  closeBundle: () => void
 
   constructor(i) {
     this.name = 'shopify-plugin'
     this.setEnv().then(() => {
       this.createBuildStartHook()
     })
-    this.closeBundle = () => {
-      console.error('is this better?')
-    }
   }
 
   private configureServerMiddleware() {
@@ -35,7 +31,7 @@ class ShopifyPlugin {
   }
 
   private async getEnv() {
-    const f = path.resolve(__dirname, './.env')
+    const f = resolve(__dirname, './.env')
     try {
       const res = {}
       const data = fs.readFileSync(f, 'utf8')
@@ -84,16 +80,28 @@ class ShopifyPlugin {
         r(e.replace(/\s/g, ''))
       })
     })
+  private themeCreate(n: string) {
+    exec(
+      `theme new -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE} -n=${n} -d=src/shopify`
+    )
+  }
+  private themeFetch(i: string) {
+    exec(
+      `theme get -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE} -t=${i} -d=src/shopify`
+    )
+  }
 
-  private async createConfig(r: () => void, x: (k: string) => void) {
+  private async createConfig(r: () => void, x: (k: Error) => void) {
     try {
       const t = await this.getThemes()
       const b = await this.getBranch()
       if (b !== 'main' && b !== 'master') {
         try {
-          const v = t.find((i) => i.theme.includes(b))
-          if (!v || !v.live) {
-            console.log(t, b)
+          const v = t.find((i) => i.live)
+          if (v && !v.theme.includes(b)) {
+            const w = t.find((i) => i.theme.includes(b))
+            w && w.id ? this.themeFetch(w.id) : this.themeCreate(b)
+            r()
           } else {
             throw 'Shopify-Plugin:Error Cannot edit a branch direcetly connected to a live theme'
           }
@@ -105,7 +113,7 @@ class ShopifyPlugin {
               'Cannot edit a branch direcetly connected to a live theme'
             )}`
           )
-          x(ex)
+          x(new Error(ex))
         }
       } else {
         throw 'Shopify-Plugin:Error Cannot build on git branch (master|main)'
@@ -116,7 +124,7 @@ class ShopifyPlugin {
           'Shopify-Plugin:Error'
         )} ${chalk.underline.red('Cannot build on git branch (master|main)')}`
       )
-      x(er)
+      x(new Error(er))
     }
 
     // if main or master theme get --live
