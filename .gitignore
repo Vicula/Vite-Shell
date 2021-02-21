@@ -17,6 +17,7 @@ npm-debug.log
 .env.*x
 /.husky
 /.vscode
+/.build
 
 
 # Compiled source #

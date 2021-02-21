@@ -1,4 +1,5 @@
-import { exec } from 'child_process'
+import { exec, execSync } from 'child_process'
+import rimraf from 'rimraf'
 import { resolve } from 'path'
 import fs from 'fs'
 import chalk from 'chalk'
@@ -81,12 +82,40 @@ class ShopifyPlugin {
       })
     })
   private themeCreate(n: string) {
-    exec(
+    !fs.existsSync('.build') && fs.mkdirSync('.build')
+    console.log(
+      `${chalk.white.bold('Shopify-Plugin:Create')} ${chalk.white(
+        'Couldnt find a theme related to this git branch; so creating one with name'
+      )} ${chalk.white.underline.bold(n)} ...`
+    )
+    console.log('_________________')
+    console.log('')
+    execSync(
       `theme new -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE} -n=${n} -d=.build`
     )
+    console.log(
+      `${chalk.white.bold('Shopify-Plugin:Create')} ${chalk.white(
+        'Theme created called'
+      )} ${chalk.white.underline.bold(n)} ; ${chalk.white(
+        'Cleaning up and deploying theme ...'
+      )}`
+    )
+    console.log('_________________')
+    console.log('')
+    fs.existsSync('.build') && rimraf.sync('.build')
+    execSync(
+      `theme deploy -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE} -t=${n} -d=src/shopify`
+    )
+    console.log(
+      `${chalk.white.bold('Shopify-Plugin:Create')} ${chalk.white(
+        '✨✨ Theme Deployed and cleaned ✨✨'
+      )}`
+    )
+    console.log('_________________')
+    console.log('')
   }
   private themeFetch(i: string) {
-    exec(
+    execSync(
       `theme get -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE} -t=${i} -d=src/shopify`
     )
   }
@@ -139,16 +168,7 @@ class ShopifyPlugin {
       if (err) console.log(err)
     })
   }
-  private initTheme() {
-    this.runScript(
-      'theme get --password=[your-api-password] --store=[your-store.myshopify.com] --themeid=[your-theme-id]'
-    )
-  }
-  private checkBranch() {
-    this.runScript('git branch --show-current')
-    this.runScript('theme get --list')
-    // if (this.checkFolders()) this.initTheme()
-  }
+
   private checkFolders() {
     if (!fs.existsSync('shopify')) {
       fs.mkdirSync('shopify')
