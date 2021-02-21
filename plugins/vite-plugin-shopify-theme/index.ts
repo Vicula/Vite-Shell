@@ -82,7 +82,7 @@ class ShopifyPlugin {
     })
   private themeCreate(n: string) {
     exec(
-      `theme new -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE} -n=${n} -d=src/shopify`
+      `theme new -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE} -n=${n} -d=.build`
     )
   }
   private themeFetch(i: string) {
