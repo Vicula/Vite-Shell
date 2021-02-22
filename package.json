@@ -17,13 +17,13 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vuedx-typecheck . && vite build",
+    "build": "yarn vuedx-typecheck . && vite build",
     "serve": "vite preview",
     "lint:script": "eslint --ext .ts,vue --ignore-path .gitignore .",
     "lint:style": "stylelint src/**/*.{css,scss,vue}",
     "lint:markup": "vti diagnostics",
     "lint": "yarn lint:script && yarn lint:style && yarn lint:markup",
-    "addHooks": "yarn husky add .husky/commit-msg 'node scripts/verifyCommits.js' && yarn husky add .husky/pre-commit 'yarn lint-staged'",
+    "addHooks": "yarn husky add .husky/commit-msg 'node scripts/verifyCommits.js $1' && yarn husky add .husky/pre-commit 'yarn lint-staged'",
     "preinstall": "node scripts/checkYarn.js",
     "postinstall": "rm -rf .husky && husky install && yarn addHooks"
   },
