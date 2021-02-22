@@ -24,7 +24,8 @@
     "lint": "yarn lint:script && yarn lint:style",
     "addHooks": "yarn husky add .husky/commit-msg 'node .config/scripts/verifyCommits.js $1' && yarn husky add .husky/pre-commit 'yarn lint-staged'",
     "preinstall": "node .config/scripts/checkYarn.js",
-    "postinstall": "rm -rf .husky && husky install && yarn addHooks"
+    "postinstall": "rm -rf .husky && husky install && yarn addHooks",
+    "precommit":"yarn lint-staged"
   },
   "lint-staged": {
     "*.{ts,tsx,vue}": "eslint --fix --config .config/.eslintrc --ignore-path .config/.eslintignore",
