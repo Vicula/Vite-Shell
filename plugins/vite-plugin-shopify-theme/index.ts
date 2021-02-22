@@ -232,7 +232,12 @@ class ShopifyPlugin {
     )
     fs.existsSync('.build') && rimraf.sync('.build')
     execSync(`theme deploy -n -d=${this.dist}`)
-    this.print('Create', `✨✨ Theme Deployed and Synced ✨✨`)
+    this.print('Create', `✨✨ Theme Deployed and Synced ✨✨`, true)
+    execSync(`git add .`)
+    execSync(
+      `git commit -m "vite//shopify: Theme created and synced to shopify"`
+    )
+    this.print('Create', `✨✨ Committed ✨✨`)
   }
 
   private themeFetch(i: string) {
