@@ -15,8 +15,8 @@ config/shopify.yml
 npm-debug.log
 .env
 .env.*x
-/.husky
-/.vscode
+.husky/
+.vscode
 
 
 # Compiled source #
