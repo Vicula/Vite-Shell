@@ -238,6 +238,7 @@ class ShopifyPlugin {
 
   private themeFetch(i: string) {
     this.print('Fetch', `Found theme on shopify; fetching theme files ...`)
+    !fs.existsSync(this.dist) && fs.mkdirSync(this.dist)
     execSync(
       `theme get -p=${this.env[this.pass]} -s=${
         this.env[this.store]
