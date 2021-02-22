@@ -1,14 +1,14 @@
-import { App, defineComponent } from 'vue'
+import { App, defineComponent } from "vue";
 
 export default {
   install: (app: App): void => {
     app.component(
-      'TESTCOMP',
+      "TESTCOMP",
       defineComponent({
         render() {
-          return <div>test</div>
+          return <div>test</div>;
         },
       })
-    )
+    );
   },
-}
+};

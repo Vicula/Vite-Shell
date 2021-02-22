@@ -19,15 +19,15 @@
     "dev": "vite",
     "build": "yarn vuedx-typecheck . && vite build",
     "serve": "vite preview",
-    "lint:script": "eslint --ext .ts,vue .config/.eslintrc --config-basedir . --ignore-path .config/.eslintignore .",
-    "lint:style": "stylelint --config .config/.stylelintrc --config-basedir . --ignore-path .config/.stylelintignore src/**/*.{css,scss,vue} ",
+    "lint:script": "eslint --fix --ext .ts,vue .config/.eslintrc --ignore-path .config/.eslintignore .",
+    "lint:style": "stylelint --fix --config .config/.stylelintrc --config-basedir . --ignore-path .config/.stylelintignore src/**/*.{css,scss,vue} ",
     "lint": "yarn lint:script && yarn lint:style",
     "addHooks": "yarn husky add .husky/commit-msg 'node .config/scripts/verifyCommits.js $1' && yarn husky add .husky/pre-commit 'yarn lint-staged'",
     "preinstall": "node .config/scripts/checkYarn.js",
     "postinstall": "rm -rf .husky && husky install && yarn addHooks"
   },
   "lint-staged": {
-    "*.{ts,tsx,vue}": "eslint --fix --config .config/.eslintrc --config-basedir . --ignore-path .config/.eslintignore",
+    "*.{ts,tsx,vue}": "eslint --fix --config .config/.eslintrc --ignore-path .config/.eslintignore",
     "*.{css,scss,vue}": "stylelint --fix --config .config/.stylelintrc --config-basedir . --ignore-path .config/.stylelintignore",
     "*": "prettier -w -u --config .config/.prettierrc --ignore-path .config/.prettierignore"
   },
@@ -53,6 +53,7 @@
     "eslint-plugin-vue": "^7.5.0",
     "husky": "^5.0.9",
     "lint-staged": "^10.5.4",
+    "eslint-plugin-prettier": "^3.1.0",
     "prettier": "^2.2.1",
     "rimraf": "^3.0.2",
     "sass": "^1.32.7",
