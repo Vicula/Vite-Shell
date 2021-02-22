@@ -28,9 +28,10 @@
     "postinstall": "rm -rf .husky && husky install && yarn addHooks"
   },
   "lint-staged": {
-    "*.{ts,tsx}": "eslint --fix",
+    "*.{ts,tsx,vue}": "eslint --fix",
     "*.{css,scss,vue}": "stylelint --fix",
-    "*": "prettier -w -u"
+    "*": "prettier -w -u",
+    "*.{vue}": "vit diagnostics"
   },
   "dependencies": {
     "vue": "^3.0.5"
