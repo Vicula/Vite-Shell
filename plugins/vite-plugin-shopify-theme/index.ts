@@ -191,7 +191,6 @@ class ShopifyPlugin {
     })
 
   private themeCreate(n: string, i: string) {
-    !fs.existsSync('.build') && fs.mkdirSync('.build')
     this.print(
       'Create',
       `Couldnt find a theme related to this git branch; so going to create one with name ${chalk.blue.underline(
@@ -219,6 +218,7 @@ class ShopifyPlugin {
       'Create',
       `Synced; Creating shopify theme named ${chalk.blue.underline(n)}...`
     )
+    !fs.existsSync('.build') && fs.mkdirSync('.build')
     execSync(
       `theme new -p=${this.env[this.pass]} -s=${
         this.env[this.store]
