@@ -63,7 +63,7 @@ class ShopifyPlugin {
   }
   private printError(t: string, m: string): void {
     console.error(
-      ` ${chalk.whiteBright.bgRed.bold(
+      `${chalk.whiteBright.bgRed.bold(
         `Shopify-Plugin:${t}`
       )} 🛑 ${chalk.underline.red(m)} 🛑`
     )
