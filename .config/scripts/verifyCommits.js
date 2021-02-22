@@ -25,4 +25,6 @@ if (!commitRE.test(msg)) {
       chalk.red(`  See .workflow/commit-convention.md for more details.\n`)
   )
   process.exit(1)
+} else {
+  console.log('✨ Passed commit lint')
 }
