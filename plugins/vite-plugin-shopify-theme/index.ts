@@ -4,7 +4,7 @@ import { resolve } from 'path'
 import fs from 'fs'
 import chalk from 'chalk'
 import { shopifyTheme } from './types'
-import { ViteDevServer, UserConfig, ResolvedConfig } from 'vite'
+import { ViteDevServer, UserConfig, ResolvedConfig, HmrContext } from 'vite'
 
 export default function execute(i) {
   return new ShopifyPlugin(i)
@@ -16,11 +16,23 @@ export default function execute(i) {
 // config location
 
 class ShopifyPlugin {
+  constructor(i) {
+    this.name = 'vite//shopify'
+    this.init = true
+    this.printLogo()
+    this.setEnv().then(() => {
+      this.createBuildStartHook()
+    })
+  }
+
   name: string
   env: { [k: string]: string }
-  buildStart: () => Promise<void>
+  private init: boolean
   private server: ViteDevServer
   private resolvedConfig: ResolvedConfig
+  private previousFile: string
+  private clearPreviousFile: ReturnType<typeof setTimeout>
+  buildStart: () => Promise<void>
   configResolved(rc: ResolvedConfig) {
     this.resolvedConfig = rc
   }
@@ -30,19 +42,13 @@ class ShopifyPlugin {
   config(c: UserConfig) {
     this.checkHttps(c)
   }
-
-  constructor(i) {
-    this.name = 'shopify-plugin'
-    this.setEnv().then(() => {
-      // prettier-ignore
-      console.log(`${chalk.blue.bold(`              //__            _ `)}`)
-      console.log(`${chalk.blue.bold(` | /o_|_ _   //(_ |_  _ ._ o_|_ `)}`)
-      console.log(`${chalk.blue.bold(` |/ | | (/_ // __)| |(_)|_)| | |/`)}`)
-      console.log(`${chalk.blue.bold(`           //           |      / `)}`)
-      console.log('_________________________________')
-      console.log()
-      this.createBuildStartHook()
-    })
+  handleHotUpdate(ctx: HmrContext) {
+    this.init && this.printDevReady()
+    const f = ctx.file.split(__dirname + '/')[1]
+    switch (f.match(/\.[0-9a-z]+$/i)[0]) {
+      case '.liquid':
+        this.handleLiquidHotUpdate(f.split('src/shopify/')[1])
+    }
   }
 
   private createBuildStartHook() {
@@ -56,19 +62,60 @@ class ShopifyPlugin {
     // need to inject middleware for making requests to shopify
   }
 
-  private print(t: string, m: string): void {
-    console.log(`${chalk.blue.bold(`Shopify-Plugin:${t}`)} ${m}`)
-    console.log('____________________')
-    console.log('')
+  private print(t: string, m: string, s = false): void {
+    console.log(
+      `${chalk.blue.bold(`vite${chalk.whiteBright('//')}shopify:${t}`)} ${m}`
+    )
+
+    !s && console.log('____________________')
+    !s && console.log('')
   }
+
   private printError(t: string, m: string): void {
     console.error(
       `${chalk.whiteBright.bgRed.bold(
-        `Shopify-Plugin:${t}`
+        `vite${chalk.blackBright('//')}shopify:${t}`
       )} 🛑 ${chalk.underline.red(m)} 🛑`
     )
     console.error('____________________')
     console.log('')
+  }
+
+  private printDevReady() {
+    this.init = false
+    console.log('____________________')
+    console.log()
+    this.print(
+      'Shopify',
+      `🚧 Ready to start developing in ${chalk.underline.blue.bold(
+        './src/shopify'
+      )} 🚧`
+    )
+  }
+
+  private printLogo() {
+    console.log(
+      `${chalk.blue.bold(
+        `              ${chalk.whiteBright('//')}__            _ `
+      )}`
+    )
+    console.log(
+      `${chalk.blue.bold(
+        ` | /o_|_ _   ${chalk.whiteBright('//')}(_ |_  _ ._ o_|_ `
+      )}`
+    )
+    console.log(
+      `${chalk.blue.bold(
+        ` |/ | | (/_ ${chalk.whiteBright('//')} __)| |(_)|_)| | |/`
+      )}`
+    )
+    console.log(
+      `${chalk.blue.bold(
+        `           ${chalk.whiteBright('//')}           |      / `
+      )}`
+    )
+    console.log('_________________________________')
+    console.log()
   }
 
   private checkHttps(c: UserConfig) {
@@ -175,18 +222,8 @@ class ShopifyPlugin {
             const w = t.find((i) => i.theme.includes(b))
             w && w.id ? this.themeFetch(w.id) : this.themeCreate(b)
             r()
-            setTimeout(() => {
-              console.log('____________________')
-              console.log()
-              this.print(
-                'Dev',
-                `🚧 Ready to start developing in ${chalk.underline.bold(
-                  './src'
-                )} 🚧`
-              )
-            }, 100)
           } else {
-            throw 'Shopify-Plugin:Error Cannot edit a branch direcetly connected to a live theme'
+            throw 'vite//shopify:Error Cannot edit a branch direcetly connected to a live theme'
           }
         } catch (ex) {
           this.printError(
@@ -196,12 +233,30 @@ class ShopifyPlugin {
           x(new Error(ex))
         }
       } else {
-        throw 'Shopify-Plugin:Error Cannot build on git branch (master|main)'
+        throw 'vite//shopify:Error Cannot build on git branch (master|main)'
       }
     } catch (er) {
       this.printError('Error', 'Cannot build on git branch (master|main)')
       x(new Error(er))
     }
+  }
+
+  private handleLiquidHotUpdate(f: string) {
+    const pf = this.previousFile
+    if (!pf && pf !== f) {
+      this.print('Shopify', `Updating ${chalk.underline.blue(f)} ...`, true)
+      execSync(`theme deploy ${f} -n -d=src/shopify`)
+      this.print('Shopify', `Deployed`, true)
+      this.previousFile = f
+      this.setFileClearTimeout()
+    }
+  }
+
+  private setFileClearTimeout() {
+    this.clearPreviousFile = setTimeout(() => {
+      this.previousFile = undefined
+      this.clearPreviousFile = undefined
+    }, 500)
   }
 
   private createJSONFiles() {
