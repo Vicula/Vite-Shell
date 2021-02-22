@@ -10,11 +10,6 @@ export default function execute(i: pluginInput) {
   return new ShopifyPlugin(i)
 }
 
-// take in :
-// variable names for shopify pass/store
-// directory location for shopify files
-// config location
-
 class ShopifyPlugin {
   constructor(i: pluginInput) {
     this.name = 'vite//shopify'
@@ -51,7 +46,7 @@ class ShopifyPlugin {
     const f = ctx.file.split(__dirname + '/')[1]
     switch (f.match(/\.[0-9a-z]+$/i)[0]) {
       case '.liquid':
-        this.handleLiquidHotUpdate(f.split('src/shopify/')[1])
+        this.handleLiquidHotUpdate(f.split(this.dist)[1])
     }
   }
 
@@ -63,13 +58,13 @@ class ShopifyPlugin {
   }
 
   private setEnvVars(i: pluginInput) {
-    i && typeof i.shopifyPass_var !== 'undefined'
+    i && i.shopifyPass_var
       ? (this.pass = i.shopifyPass_var)
       : (this.pass = 'SHOPIFY_PASSWORD')
-    i && typeof i.shopifyStore_var !== 'undefined'
+    i && i.shopifyStore_var
       ? (this.store = i.shopifyStore_var)
       : (this.store = 'SHOPIFY_STORE')
-    i && typeof i.devFolder_url !== 'undefined'
+    i && i.devFolder_url
       ? (this.dist = i.devFolder_url)
       : (this.dist = 'src/shopify')
   }
@@ -194,13 +189,35 @@ class ShopifyPlugin {
         r(e.replace(/\s/g, ''))
       })
     })
-  private themeCreate(n: string) {
+
+  private themeCreate(n: string, i: string) {
     !fs.existsSync('.build') && fs.mkdirSync('.build')
     this.print(
       'Create',
-      `Couldnt find a theme related to this git branch; so creating one with name ${chalk.underline(
+      `Couldnt find a theme related to this git branch; so going to create one with name ${chalk.blue.underline(
         n
-      )} ...`
+      )}`,
+      true
+    )
+    this.print(
+      'Create',
+      `Cleaning current directory at ${chalk.blue.underline(this.dist)} ...`
+    )
+    fs.existsSync(this.dist) && rimraf.sync(this.dist + '/*')
+    this.print(
+      'Create',
+      `Cleaned; Syncing theme code to the published theme ...`
+    )
+    execSync(
+      `theme get -p=${this.env[this.pass]} -s=${
+        this.env[this.store]
+      } -t=${i} -d=${
+        this.dist
+      } --allow-live --ignored-file=assets/* --ignored-file=locales/* --ignored-file=config/*`
+    )
+    this.print(
+      'Create',
+      `Synced; Creating shopify theme named ${chalk.blue.underline(n)}...`
     )
     execSync(
       `theme new -p=${this.env[this.pass]} -s=${
@@ -209,14 +226,15 @@ class ShopifyPlugin {
     )
     this.print(
       'Create',
-      `Theme created called ${chalk.underline(
+      `Theme created called ${chalk.blue.underline(
         n
-      )}; Cleaning up and deploying theme ...`
+      )}; Cleaning up and deploying theme to shopify ...`
     )
     fs.existsSync('.build') && rimraf.sync('.build')
     execSync(`theme deploy -n -d=${this.dist}`)
-    this.print('Create', `✨✨ Theme Deployed and cleaned ✨✨`)
+    this.print('Create', `✨✨ Theme Deployed and Synced ✨✨`)
   }
+
   private themeFetch(i: string) {
     this.print('Fetch', `Found theme on shopify; fetching theme files ...`)
     execSync(
@@ -242,7 +260,7 @@ class ShopifyPlugin {
           const v = t.find((i) => i.live)
           if (v && !v.theme.includes(b)) {
             const w = t.find((i) => i.theme.includes(b))
-            w && w.id ? this.themeFetch(w.id) : this.themeCreate(b)
+            w && w.id ? this.themeFetch(w.id) : this.themeCreate(b, v.id)
             r()
           } else {
             throw 'vite//shopify:Error Cannot edit a branch direcetly connected to a live theme'

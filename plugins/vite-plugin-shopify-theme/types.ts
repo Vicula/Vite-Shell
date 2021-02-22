@@ -5,7 +5,7 @@ export interface shopifyTheme {
 }
 
 export interface pluginInput {
-  shopifyPass_var: string
-  shopifyStore_var: string
-  devFolder_url: string
+  shopifyPass_var?: string
+  shopifyStore_var?: string
+  devFolder_url?: string
 }

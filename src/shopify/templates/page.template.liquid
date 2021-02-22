@@ -1,0 +1,26 @@
+content_category:'
+{% for line_item in checkout.line_items %}
+
+{% if line_item.product.type contains 'Model'  % }
+
+    {{line_item.product.type}} - Shoe
+
+{% elsif line_item.product.type contains 'bags'  %}
+
+    {{line_item.product.type}} - Bags
+
+{% elsif line_item.product.type contains 'Gift'   %}
+
+    {{line_item.product.type}} - Card
+
+{% elsif line_item.product.type contains 'Insole'   %}
+
+    {{line_item.product.type}}
+
+{% elsif line_item.product.type contains 'PPE'   %}
+
+    {{line_item.product.type}} - Mask
+
+{% endif %},
+
+{% endfor %}',

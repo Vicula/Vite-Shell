@@ -1,0 +1,39 @@
+<div class="checkout"><div class="mainPricing wrapper">
+          <dl>
+            <div class="mainPricingLine">
+              <dt>SUBTOTAL</dt>
+              <dd v-html="'$'+cart.total_price"></dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="mainButtons wrapper">
+          <div class="mainButtonsCheckoutWrapper">
+            <button
+              class="btn btn-primary"
+              style="width:100%;"
+              data-dont-close-dialog="true"
+              @click="checkout"
+            >
+              CHECKOUT
+            </button>
+          </div>
+          {% comment %} <div
+            v-if="!hasSubscriptionItemsInCart && checkoutButtons.length > 0 && stores.us === shopifyStore"
+            class="mainButtonsRow"
+          >
+            <div v-for="button in checkoutButtons" :key="button.label" class="mainButtonsBtnWrapper">
+              <a
+                class="mainButtonsBtn"
+                data-dont-close-dialog="true"
+                :aria-label="button.label"
+                @click="checkout({ method: button.label })"
+              >
+                <div v-if="isLoadingCheckout === button.label" class="mainButtonsBtnSpinner">
+                  <BaseSpinner />
+                </div>
+                <div v-else class="mainButtonsBtnIcon" :style="{ backgroundImage: `url('${button.icon}')` }" />
+              </a>
+            </div>
+          </div> {% endcomment %}
+        </div></div>

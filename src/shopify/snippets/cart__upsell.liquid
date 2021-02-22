@@ -1,0 +1,35 @@
+
+<div class="extra">
+    {% comment %} <blockquote v-if="extra.type === 'QUOTE'" class="quote">
+      <p class="quoteText">{{ extra.text }}</p>
+      <footer class="quoteAuthor">{{ extra.author }}</footer>
+    </blockquote> {% endcomment %}
+
+    <div class="product">
+      <div class="productTop __styles">
+        <div class="upsellPrdImg">
+          <img src="https://cdn.shopify.com/s/files/1/0739/9341/products/10MushroomBlend_812x528_0a6bae04-0b35-456f-8c86-2e17a5e43f99.jpg?v=1584908627" />
+        </div>
+        <div class="productTopLeft __styles">
+          <p class="productPreheader">BEST SELLER!</p>
+          <p class="productName">Mushroom Blend</p>
+          <p class="productText __desktop __styles">
+            Support your immune system, deliciously
+          </p>
+        </div>
+        <div class="productTopRight __styles">
+          <button class="btn btn-primary" data-dont-close-dialog="true" @click="addToCart">
+             ADD TO ORDER - $30 
+          </button>
+        </div>
+      </div>
+
+      <p class="productText __mobile __styles">
+        Support your immune system, deliciously
+      </p>
+    </div>
+
+    {% comment %} <div v-else-if="extra.type === 'PRODUCT' && extra.isLoading" class=".productLoading">
+      <BaseSpinner />
+    </div> {% endcomment %}
+  </div>
