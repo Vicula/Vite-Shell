@@ -3,10 +3,10 @@ import rimraf from 'rimraf'
 import { resolve } from 'path'
 import fs from 'fs'
 import chalk from 'chalk'
-import { shopifyTheme } from './types'
+import { shopifyTheme, pluginInput } from './types'
 import { ViteDevServer, UserConfig, ResolvedConfig, HmrContext } from 'vite'
 
-export default function execute(i) {
+export default function execute(i: pluginInput) {
   return new ShopifyPlugin(i)
 }
 
@@ -16,10 +16,11 @@ export default function execute(i) {
 // config location
 
 class ShopifyPlugin {
-  constructor(i) {
+  constructor(i: pluginInput) {
     this.name = 'vite//shopify'
     this.init = true
     this.printLogo()
+    this.setEnvVars(i)
     this.setEnv().then(() => {
       this.createBuildStartHook()
     })
@@ -27,12 +28,15 @@ class ShopifyPlugin {
 
   name: string
   env: { [k: string]: string }
+  private pass: string
+  private store: string
+  private dist: string
   private init: boolean
   private server: ViteDevServer
   private resolvedConfig: ResolvedConfig
   private previousFile: string
-  private clearPreviousFile: ReturnType<typeof setTimeout>
   buildStart: () => Promise<void>
+
   configResolved(rc: ResolvedConfig) {
     this.resolvedConfig = rc
   }
@@ -56,6 +60,18 @@ class ShopifyPlugin {
       new Promise((resolve, reject) => {
         this.createConfig(resolve, reject)
       })
+  }
+
+  private setEnvVars(i: pluginInput) {
+    i && typeof i.shopifyPass_var !== 'undefined'
+      ? (this.pass = i.shopifyPass_var)
+      : (this.pass = 'SHOPIFY_PASSWORD')
+    i && typeof i.shopifyStore_var !== 'undefined'
+      ? (this.store = i.shopifyStore_var)
+      : (this.store = 'SHOPIFY_STORE')
+    i && typeof i.devFolder_url !== 'undefined'
+      ? (this.dist = i.devFolder_url)
+      : (this.dist = 'src/shopify')
   }
 
   private configureServerMiddleware() {
@@ -88,7 +104,7 @@ class ShopifyPlugin {
     this.print(
       'Shopify',
       `🚧 Ready to start developing in ${chalk.underline.blue.bold(
-        './src/shopify'
+        `./${this.dist}`
       )} 🚧`
     )
   }
@@ -150,7 +166,7 @@ class ShopifyPlugin {
   private getThemes = () =>
     new Promise<shopifyTheme[]>((r) => {
       exec(
-        `theme get --list -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE}`,
+        `theme get --list -p=${this.env[this.pass]} -s=${this.env[this.store]}`,
         (s, e) => {
           const o: shopifyTheme[] = []
           e.split(/\r?\n/).forEach((i) => {
@@ -187,7 +203,9 @@ class ShopifyPlugin {
       )} ...`
     )
     execSync(
-      `theme new -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE} -n=${n} -d=.build`
+      `theme new -p=${this.env[this.pass]} -s=${
+        this.env[this.store]
+      } -n=${n} -d=.build`
     )
     this.print(
       'Create',
@@ -196,13 +214,17 @@ class ShopifyPlugin {
       )}; Cleaning up and deploying theme ...`
     )
     fs.existsSync('.build') && rimraf.sync('.build')
-    execSync(`theme deploy -n -d=src/shopify`)
+    execSync(`theme deploy -n -d=${this.dist}`)
     this.print('Create', `✨✨ Theme Deployed and cleaned ✨✨`)
   }
   private themeFetch(i: string) {
     this.print('Fetch', `Found theme on shopify; fetching theme files ...`)
     execSync(
-      `theme get -p=${this.env.SHOPIFY_PASSWORD} -s=${this.env.SHOPIFY_STORE} -t=${i} -d=src/shopify --ignored-file=assets/* --ignored-file=locales/* --ignored-file=config/*`
+      `theme get -p=${this.env[this.pass]} -s=${
+        this.env[this.store]
+      } -t=${i} -d=${
+        this.dist
+      } --ignored-file=assets/* --ignored-file=locales/* --ignored-file=config/*`
     )
     this.print('Fetch', '✨✨ Theme Fetched ✨✨')
   }
@@ -245,7 +267,7 @@ class ShopifyPlugin {
     const pf = this.previousFile
     if (!pf && pf !== f) {
       this.print('Shopify', `Updating ${chalk.underline.blue(f)} ...`, true)
-      execSync(`theme deploy ${f} -n -d=src/shopify`)
+      execSync(`theme deploy ${f} -n -d=${this.dist}`)
       this.print('Shopify', `Deployed`, true)
       this.previousFile = f
       this.setFileClearTimeout()
@@ -253,9 +275,8 @@ class ShopifyPlugin {
   }
 
   private setFileClearTimeout() {
-    this.clearPreviousFile = setTimeout(() => {
+    setTimeout(() => {
       this.previousFile = undefined
-      this.clearPreviousFile = undefined
     }, 500)
   }
 

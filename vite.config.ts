@@ -11,38 +11,10 @@ export default defineConfig({
   plugins: [
     vue(),
     vueJsx(),
-    shopify({}),
-    // shell({
-    //   buildStart: {
-    //     commands: ['echo run my script'],
-    //   },
-    //   buildEnd: {
-    //     commands: ['echo end my script'],
-    //   },
-    //   closeWatcher: {
-    //     commands: ['echo close watcher'],
-    //   },
-    //   watchChange: {
-    //     commands: ['echo watch change'],
-    //   },
-    //   moduleParsed: {
-    //     commands: ['echo moduleParsed'],
-    //   },
-    //   generateBundle: {
-    //     commands: ['echo generateBundle'],
-    //   },
-    //   renderError: {
-    //     commands: ['echo render error'],
-    //   },
-    //   renderStart: {
-    //     commands: ['echo render start'],
-    //   },
-    //   writeBundle: {
-    //     commands: ['echo write bundle'],
-    //   },
-    //   transformIndexHtml: {
-    //     commands: ['echo transform that html'],
-    //   },
-    // }),
+    shopify({
+      shopifyPass_var: 'SHOPIFY_PASSWORD',
+      shopifyStore_var: 'SHOPIFY_STORE',
+      devFolder_url: 'src/shopify',
+    }),
   ],
 })
