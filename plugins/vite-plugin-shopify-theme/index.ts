@@ -202,6 +202,7 @@ class ShopifyPlugin {
       'Create',
       `Cleaning current directory at ${chalk.blue.underline(this.dist)} ...`
     )
+    !fs.existsSync(this.dist) && fs.mkdirSync(this.dist)
     fs.existsSync(this.dist) && rimraf.sync(this.dist + '/*')
     this.print(
       'Create',
