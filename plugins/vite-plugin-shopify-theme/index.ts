@@ -38,8 +38,8 @@ class ShopifyPlugin {
       console.log(`${chalk.blue.bold(`                __            _ `)}`)
       console.log(`${chalk.blue.bold(` | /o_|_ _     (_ |_  _ ._ o_|_ `)}`)
       console.log(`${chalk.blue.bold(` |/ | | (/_    __)| |(_)|_)| | |/`)}`)
-      console.log(`${chalk.blue.bold(` ־                      |      / `)}`)
-      console.log('______________________________')
+      console.log(`${chalk.blue.bold(`                        |      / `)}`)
+      console.log('_________________________________')
       console.log()
       this.createBuildStartHook()
     })
@@ -175,6 +175,16 @@ class ShopifyPlugin {
             const w = t.find((i) => i.theme.includes(b))
             w && w.id ? this.themeFetch(w.id) : this.themeCreate(b)
             r()
+            setTimeout(() => {
+              console.log('____________________')
+              console.log()
+              this.print(
+                'Dev',
+                `🚧 Ready to start developing in ${chalk.underline.bold(
+                  './src'
+                )} 🚧`
+              )
+            }, 100)
           } else {
             throw 'Shopify-Plugin:Error Cannot edit a branch direcetly connected to a live theme'
           }
