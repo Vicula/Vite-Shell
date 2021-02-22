@@ -22,7 +22,7 @@ if (!commitRE.test(msg)) {
       `    ${chalk.green(
         `fix(v-model): handle events on blur (close #28)`
       )}\n\n` +
-      chalk.red(`  See .github/commit-convention.md for more details.\n`)
+      chalk.red(`  See .workflow/commit-convention.md for more details.\n`)
   )
   process.exit(1)
 }
