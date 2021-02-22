@@ -34,6 +34,13 @@ class ShopifyPlugin {
   constructor(i) {
     this.name = 'shopify-plugin'
     this.setEnv().then(() => {
+      // prettier-ignore
+      console.log(`${chalk.blue.bold(`                __            _ `)}`)
+      console.log(`${chalk.blue.bold(` | /o_|_ _     (_ |_  _ ._ o_|_ `)}`)
+      console.log(`${chalk.blue.bold(` |/ | | (/_    __)| |(_)|_)| | |/`)}`)
+      console.log(`${chalk.blue.bold(` ־                      |      / `)}`)
+      console.log('______________________________')
+      console.log()
       this.createBuildStartHook()
     })
   }
