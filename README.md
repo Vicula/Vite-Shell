@@ -10,6 +10,16 @@ All files are in TypeScript and we use JSX for vue's render functions in TSX fil
 
 `yarn dev`
 
+#### Commit Lint
+
+Messages must be matched by the following regex:
+
+```js
+;/^(revert: )?(feat|fix|docs|dx|refactor|perf|test|workflow|build|ci|chore|types|wip|release|deps)(\(.+\))?: .{1,50}/
+```
+
+#### VScode Settings
+
 ```json
 //.vscode/settings.json
 {
