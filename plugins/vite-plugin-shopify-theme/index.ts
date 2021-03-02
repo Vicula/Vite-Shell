@@ -45,7 +45,7 @@ class ShopifyPlugin {
     const f = ctx.file.split(__dirname + "/")[1];
     switch (f.match(/\.[0-9a-z]+$/i)[0]) {
       case ".liquid":
-        this.handleLiquidHotUpdate(f.split(this.dist)[1]);
+        this.handleLiquidHotUpdate(f.split(this.dist + "/shopify")[1]);
     }
   }
 
@@ -68,9 +68,7 @@ class ShopifyPlugin {
     i && i.shopifyStore_var
       ? (this.store = i.shopifyStore_var)
       : (this.store = "SHOPIFY_STORE");
-    i && i.devFolder_url
-      ? (this.dist = i.devFolder_url)
-      : (this.dist = "src/shopify");
+    i && i.devFolder_url ? (this.dist = i.devFolder_url) : (this.dist = "src");
   }
 
   private configureServerMiddleware() {
@@ -162,6 +160,68 @@ class ShopifyPlugin {
     }
   }
 
+  private fetchAssets = () =>
+    new Promise((resolve) => {
+      this.print(
+        "Create",
+        `Create asset directory at ${chalk.blue.underline(
+          this.dist + "/assets"
+        )} ...`
+      );
+      !fs.existsSync(this.dist + "/assets") &&
+        fs.mkdirSync(this.dist + "/assets");
+
+      this.print(
+        "Create",
+        `Fetching images at ${chalk.blue.underline(
+          this.dist + "/assets/images"
+        )}`,
+        true
+      );
+      !fs.existsSync(this.dist + "/assets/images") &&
+        fs.mkdirSync(this.dist + "/assets/images");
+      // "/\Qassets/\E+[[:word:]]+\.(jpg$|png$|jpeg$|svg$|gif$)+$/"
+      execSync(
+        `theme download assets/*.png -p=${this.env[this.pass]} -s=${
+          this.env[this.store]
+        } -d=${this.dist + "/assets/images"}`
+      );
+
+      // this.print(
+      //   "Create",
+      //   `Fetching stylesheets at ${chalk.blue.underline(this.dist+'/assets/styles')}`,
+      //   true
+      // );
+      // !fs.existsSync(this.dist+'/assets/styles') && fs.mkdirSync(this.dist+'/assets/styles');
+      // // "/\.(?!css$|scss$|sass$|less$)[^.]+$/"
+      // execSync(
+      //   `theme download assets/**/*.css assets/**/*.scss assets/**/*.sass assets/**/*.less  -p=${this.env[this.pass]} -s=${this.env[this.store]} -d=${this.dist+'/assets/styles'}`
+      // )
+
+      // this.print(
+      //   "Create",
+      //   `Fetching scripts at ${chalk.blue.underline(this.dist+'/assets/scripts')}`,
+      //   true
+      // );
+      // !fs.existsSync(this.dist+'/assets/scripts') && fs.mkdirSync(this.dist+'/assets/scripts');
+      // execSync(
+      //   `theme download assets/*.js -p=${this.env[this.pass]} -s=${this.env[this.store]} -d=${this.dist+'/assets/scripts'}`
+      // )
+
+      // this.print(
+      //   "Create",
+      //   `And everything else at ${chalk.blue.underline(this.dist+'/assets/misc')}`,
+      //   true
+      // );
+      // !fs.existsSync(this.dist+'/assets/misc') && fs.mkdirSync(this.dist+'/assets/misc');
+      // // "/\.(?!jpg$|png$|jpeg$|svg$|gif$|css$|scss$|sass$|less$|js$)[^.]+$/"
+      // execSync(
+      //   `theme download assets/**/* --ignored-file="/[[:word:]]+\\.(jpg$|png$|jpeg$|svg$|gif$|css$|scss$|sass$|less$|js$)+$/" -p=${this.env[this.pass]} -s=${this.env[this.store]} -d=${this.dist+'/assets/misc'}`
+      // )
+      // this.print("Create", `✨✨ Fetched Assets ✨✨`);
+      resolve(1);
+    });
+
   private getThemes = () =>
     new Promise<shopifyTheme[]>((r) => {
       exec(
@@ -194,7 +254,7 @@ class ShopifyPlugin {
       });
     });
 
-  private themeCreate(n: string, i: string) {
+  private async themeCreate(n: string, i: string) {
     this.print(
       "Create",
       `Couldnt find a theme related to this git branch; so going to create one with name ${chalk.blue.underline(
@@ -204,10 +264,14 @@ class ShopifyPlugin {
     );
     this.print(
       "Create",
-      `Cleaning current directory at ${chalk.blue.underline(this.dist)} ...`
+      `Cleaning current directory at ${chalk.blue.underline(
+        this.dist + "/shopify"
+      )} ...`
     );
-    !fs.existsSync(this.dist) && fs.mkdirSync(this.dist);
-    fs.existsSync(this.dist) && rimraf.sync(this.dist + "/*");
+    !fs.existsSync(this.dist + "/shopify") &&
+      fs.mkdirSync(this.dist + "/shopify");
+    fs.existsSync(this.dist + "/shopify") &&
+      rimraf.sync(this.dist + "/shopify/*");
     this.print(
       "Create",
       `Cleaned; Syncing theme code to the published theme ...`
@@ -216,9 +280,10 @@ class ShopifyPlugin {
       `theme get -p=${this.env[this.pass]} -s=${
         this.env[this.store]
       } -t=${i} -d=${
-        this.dist
-      } --allow-live --ignored-file=assets/* --ignored-file=locales/* --ignored-file=config/*`
+        this.dist + "/shopify"
+      } --allow-live --ignored-file=locales/* --ignored-file=config/*`
     );
+    await this.fetchAssets();
     this.print(
       "Create",
       `Synced; Creating shopify theme named ${chalk.blue.underline(n)}...`
@@ -236,18 +301,19 @@ class ShopifyPlugin {
       )}; Cleaning up and deploying theme to shopify ...`
     );
     fs.existsSync(".build") && rimraf.sync(".build");
-    execSync(`theme deploy -n -d=${this.dist}`);
+    execSync(`theme deploy -n -d=${this.dist + "/shopify"}`);
     this.print("Create", `✨✨ Theme Deployed and Synced ✨✨`);
   }
 
   private themeFetch(i: string) {
     this.print("Fetch", `Found theme on shopify; fetching theme files ...`);
-    !fs.existsSync(this.dist) && fs.mkdirSync(this.dist);
+    !fs.existsSync(this.dist + "/shopify") &&
+      fs.mkdirSync(this.dist + "/shopify");
     execSync(
       `theme get -p=${this.env[this.pass]} -s=${
         this.env[this.store]
       } -t=${i} -d=${
-        this.dist
+        this.dist + "/shopify"
       } --ignored-file=assets/* --ignored-file=locales/* --ignored-file=config/*`
     );
     this.print("Fetch", "✨✨ Theme Fetched ✨✨");
@@ -291,7 +357,7 @@ class ShopifyPlugin {
     const pf = this.previousFile;
     if (!pf && pf !== f) {
       this.print("Shopify", `Updating ${chalk.underline.blue(f)} ...`, true);
-      execSync(`theme deploy ${f} -n -d=${this.dist}`);
+      execSync(`theme deploy ${f} -n -d=${this.dist + "/shopify"}`);
       this.print("Shopify", `Deployed`, true);
       this.previousFile = f;
       this.setFileClearTimeout();

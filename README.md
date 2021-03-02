@@ -29,3 +29,8 @@ Messages must be matched by the following regex:
   "prettier.ignorePath": "~/.config/.prettierignore"
 }
 ```
+
+#### TODO
+
+- Clean up linter settings in `.config` folder
+- implement wails app for shopify
