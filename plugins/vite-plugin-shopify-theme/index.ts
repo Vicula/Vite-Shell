@@ -49,11 +49,16 @@ class ShopifyPlugin {
     }
   }
 
+  private isDev() {
+    return this.resolvedConfig.command !== "build";
+  }
+
   private createBuildStartHook() {
-    this.buildStart = () =>
-      new Promise((resolve, reject) => {
-        this.createConfig(resolve, reject);
-      });
+    this.isDev &&
+      (this.buildStart = () =>
+        new Promise((resolve, reject) => {
+          this.createConfig(resolve, reject);
+        }));
   }
 
   private setEnvVars(i: pluginInput) {
