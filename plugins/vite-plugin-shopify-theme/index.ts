@@ -168,6 +168,8 @@ class ShopifyPlugin {
           this.dist + "/assets"
         )} ...`
       );
+      fs.existsSync(this.dist + "/assets") &&
+        rimraf.sync(this.dist + "/assets/*");
       !fs.existsSync(this.dist + "/assets") &&
         fs.mkdirSync(this.dist + "/assets");
 
@@ -178,47 +180,72 @@ class ShopifyPlugin {
         )}`,
         true
       );
-      !fs.existsSync(this.dist + "/assets/images") &&
-        fs.mkdirSync(this.dist + "/assets/images");
       // "/\Qassets/\E+[[:word:]]+\.(jpg$|png$|jpeg$|svg$|gif$)+$/"
       execSync(
-        `theme download assets/*.png -p=${this.env[this.pass]} -s=${
-          this.env[this.store]
-        } -d=${this.dist + "/assets/images"}`
+        `theme download assets/*.png assets/*.jpg assets/*.jpeg assets/*.svg assets/*.gif assets/*.ico --no-ignore -p=${
+          this.env[this.pass]
+        } -s=${this.env[this.store]} -d=${this.dist + "/assets"}`
       );
-
-      // this.print(
-      //   "Create",
-      //   `Fetching stylesheets at ${chalk.blue.underline(this.dist+'/assets/styles')}`,
-      //   true
-      // );
-      // !fs.existsSync(this.dist+'/assets/styles') && fs.mkdirSync(this.dist+'/assets/styles');
-      // // "/\.(?!css$|scss$|sass$|less$)[^.]+$/"
-      // execSync(
-      //   `theme download assets/**/*.css assets/**/*.scss assets/**/*.sass assets/**/*.less  -p=${this.env[this.pass]} -s=${this.env[this.store]} -d=${this.dist+'/assets/styles'}`
-      // )
-
-      // this.print(
-      //   "Create",
-      //   `Fetching scripts at ${chalk.blue.underline(this.dist+'/assets/scripts')}`,
-      //   true
-      // );
-      // !fs.existsSync(this.dist+'/assets/scripts') && fs.mkdirSync(this.dist+'/assets/scripts');
-      // execSync(
-      //   `theme download assets/*.js -p=${this.env[this.pass]} -s=${this.env[this.store]} -d=${this.dist+'/assets/scripts'}`
-      // )
-
-      // this.print(
-      //   "Create",
-      //   `And everything else at ${chalk.blue.underline(this.dist+'/assets/misc')}`,
-      //   true
-      // );
-      // !fs.existsSync(this.dist+'/assets/misc') && fs.mkdirSync(this.dist+'/assets/misc');
-      // // "/\.(?!jpg$|png$|jpeg$|svg$|gif$|css$|scss$|sass$|less$|js$)[^.]+$/"
-      // execSync(
-      //   `theme download assets/**/* --ignored-file="/[[:word:]]+\\.(jpg$|png$|jpeg$|svg$|gif$|css$|scss$|sass$|less$|js$)+$/" -p=${this.env[this.pass]} -s=${this.env[this.store]} -d=${this.dist+'/assets/misc'}`
-      // )
-      // this.print("Create", `✨✨ Fetched Assets ✨✨`);
+      fs.renameSync(this.dist + "/assets/assets", this.dist + "/assets/images");
+      this.print(
+        "Create",
+        `Fetching stylesheets at ${chalk.blue.underline(
+          this.dist + "/assets/styles"
+        )}`,
+        true
+      );
+      // "/\.(?!css$|scss$|sass$|less$)[^.]+$/"
+      execSync(
+        `theme download assets/*.css assets/*.css.liquid assets/*.scss assets/*.sass assets/*.less --no-ignore -p=${
+          this.env[this.pass]
+        } -s=${this.env[this.store]} -d=${this.dist + "/assets"}`
+      );
+      fs.renameSync(this.dist + "/assets/assets", this.dist + "/assets/styles");
+      this.print(
+        "Create",
+        `Fetching fonts at ${chalk.blue.underline(
+          this.dist + "/assets/fonts"
+        )}`,
+        true
+      );
+      execSync(
+        `theme download assets/*.woff assets/*.woff2 assets/*.otf assets/*.ttf --no-ignore -p=${
+          this.env[this.pass]
+        } -s=${this.env[this.store]} -d=${this.dist + "/assets"}`
+      );
+      fs.renameSync(this.dist + "/assets/assets", this.dist + "/assets/fonts");
+      this.print(
+        "Create",
+        `Fetching scripts at ${chalk.blue.underline(
+          this.dist + "/assets/scripts"
+        )}`,
+        true
+      );
+      execSync(
+        `theme download assets/*.js --no-ignore -p=${this.env[this.pass]} -s=${
+          this.env[this.store]
+        } -d=${this.dist + "/assets"}`
+      );
+      fs.renameSync(
+        this.dist + "/assets/assets",
+        this.dist + "/assets/scripts"
+      );
+      this.print(
+        "Create",
+        `And everything else at ${chalk.blue.underline(
+          this.dist + "/assets/misc"
+        )}`,
+        true
+      );
+      // "/\.(?!jpg$|png$|jpeg$|svg$|gif$|css$|scss$|sass$|less$|js$)[^.]+$/"
+      execSync(`theme configure --no-ignore`);
+      execSync(
+        `theme download assets/* --ignored-file="/\\.(jpg$|png$|jpeg$|svg$|gif$|css$|scss$|sass$|less$|js$|css.liquid$|woff$|woff2$|otf$|ttf$|ico$)/" -p=${
+          this.env[this.pass]
+        } -s=${this.env[this.store]} -d=${this.dist + "/assets"}`
+      );
+      fs.renameSync(this.dist + "/assets/assets", this.dist + "/assets/misc");
+      this.print("Create", `✨✨ Fetched Assets ✨✨`);
       resolve(1);
     });
 
@@ -268,10 +295,11 @@ class ShopifyPlugin {
         this.dist + "/shopify"
       )} ...`
     );
-    !fs.existsSync(this.dist + "/shopify") &&
-      fs.mkdirSync(this.dist + "/shopify");
     fs.existsSync(this.dist + "/shopify") &&
       rimraf.sync(this.dist + "/shopify/*");
+    !fs.existsSync(this.dist + "/shopify") &&
+      fs.mkdirSync(this.dist + "/shopify");
+
     this.print(
       "Create",
       `Cleaned; Syncing theme code to the published theme ...`
@@ -281,7 +309,7 @@ class ShopifyPlugin {
         this.env[this.store]
       } -t=${i} -d=${
         this.dist + "/shopify"
-      } --allow-live --ignored-file=locales/* --ignored-file=config/*`
+      } --allow-live --ignored-file=assets/* --ignored-file=locales/* --ignored-file=config/*`
     );
     await this.fetchAssets();
     this.print(
