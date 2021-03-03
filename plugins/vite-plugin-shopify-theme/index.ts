@@ -161,7 +161,7 @@ class ShopifyPlugin {
   }
 
   private fetchAssets = () =>
-    new Promise((resolve) => {
+    new Promise((resolve, x) => {
       this.print(
         "Create",
         `Create asset directory at ${chalk.blue.underline(
@@ -214,37 +214,56 @@ class ShopifyPlugin {
         } -s=${this.env[this.store]} -d=${this.dist + "/assets"}`
       );
       fs.renameSync(this.dist + "/assets/assets", this.dist + "/assets/fonts");
-      this.print(
-        "Create",
-        `Fetching scripts at ${chalk.blue.underline(
+      try {
+        this.print(
+          "Create",
+          `Fetching scripts at ${chalk.blue.underline(
+            this.dist + "/assets/scripts"
+          )}`,
+          true
+        );
+        execSync(
+          `theme download assets/*.js --no-ignore -p=${
+            this.env[this.pass]
+          } -s=${this.env[this.store]} -d=${this.dist + "/assets"}`
+        );
+        fs.renameSync(
+          this.dist + "/assets/assets",
           this.dist + "/assets/scripts"
-        )}`,
-        true
-      );
-      execSync(
-        `theme download assets/*.js --no-ignore -p=${this.env[this.pass]} -s=${
-          this.env[this.store]
-        } -d=${this.dist + "/assets"}`
-      );
-      fs.renameSync(
-        this.dist + "/assets/assets",
-        this.dist + "/assets/scripts"
-      );
-      this.print(
-        "Create",
-        `And everything else at ${chalk.blue.underline(
-          this.dist + "/assets/misc"
-        )}`,
-        true
-      );
+        );
+      } catch (e) {
+        if (
+          !e.message.match(/(?:No file paths matched the inputted arguments)/)
+        ) {
+          this.printError("Error", `Something went wrong in Misc asset fetch'`);
+          x(e);
+        }
+      }
+
       // "/\.(?!jpg$|png$|jpeg$|svg$|gif$|css$|scss$|sass$|less$|js$)[^.]+$/"
-      execSync(`theme configure --no-ignore`);
-      execSync(
-        `theme download assets/* --ignored-file="/\\.(jpg$|png$|jpeg$|svg$|gif$|css$|scss$|sass$|less$|js$|css.liquid$|woff$|woff2$|otf$|ttf$|ico$)/" -p=${
-          this.env[this.pass]
-        } -s=${this.env[this.store]} -d=${this.dist + "/assets"}`
-      );
-      fs.renameSync(this.dist + "/assets/assets", this.dist + "/assets/misc");
+      try {
+        this.print(
+          "Create",
+          `And everything else at ${chalk.blue.underline(
+            this.dist + "/assets/misc"
+          )}`,
+          true
+        );
+        execSync(`theme configure --no-ignore`);
+        execSync(
+          `theme download assets/* --ignored-file="/\\.(jpg$|png$|jpeg$|svg$|gif$|css$|scss$|sass$|less$|js$|css.liquid$|woff$|woff2$|otf$|ttf$|ico$)/" -p=${
+            this.env[this.pass]
+          } -s=${this.env[this.store]} -d=${this.dist + "/assets"}`
+        );
+        fs.renameSync(this.dist + "/assets/assets", this.dist + "/assets/misc");
+      } catch (e) {
+        if (
+          !e.message.match(/(?:No file paths matched the inputted arguments)/)
+        ) {
+          this.printError("Error", `Something went wrong in Misc asset fetch'`);
+          x(new Error(e));
+        }
+      }
       this.print("Create", `✨✨ Fetched Assets ✨✨`);
       resolve(1);
     });
